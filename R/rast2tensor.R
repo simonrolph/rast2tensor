@@ -1,5 +1,4 @@
 args = commandArgs(trailingOnly=TRUE); sp_id <- args[1] # get species ID from call
-setwd("R")
 
 
 #spatial processing
