@@ -44,7 +44,7 @@ species_list_lower <- sp_points %>%
 
 
 # target species
-species <- species_list_lower[sp_id]
+species <- species_list[sp_id]
 species_lower <- species_list_lower[sp_id]
 i <- sp_id
 
