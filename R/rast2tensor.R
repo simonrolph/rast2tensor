@@ -1,4 +1,6 @@
 args = commandArgs(trailingOnly=TRUE); sp_id <- args[1] # get species ID from call
+setwd("R")
+
 
 #spatial processing
 library(terra)
@@ -52,7 +54,7 @@ lapply(species_lower,FUN = function(x){dir.create(paste0("data/tensor/",x))})
 
 #some info
 print(paste0(i,"/",length(species_list)))
-print(species_list[i])
+print(species)
 
 #load points for the selected species
 sp_points_sf <- sp_points %>% 
