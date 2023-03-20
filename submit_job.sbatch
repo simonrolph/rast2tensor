@@ -7,4 +7,5 @@
 #SBATCH --array=1-5
 #SBATCH --mem=16000
 module add jasr
+module add jaspy
 Rscript R/rast2tensor.R ${SLURM_ARRAY_TASK_ID}
