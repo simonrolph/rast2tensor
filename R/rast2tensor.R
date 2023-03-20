@@ -1,0 +1,157 @@
+#spatial processing
+library(terra)
+library(sf)
+
+#if using
+library(parallel)
+
+# data wranging
+library(dplyr)
+library(pbapply) #for progressbars on lapply
+
+#exporting data
+#library(torch) #for exporting to pytorch .pt files (not used currently)
+library(reticulate) # for exporting as numpy array
+np <- import("numpy")
+
+#load raster files from `data/raster` - multiple files loaded as bands into one raster therefore requires matching extents/resolution
+env_files <- list.files("data/raster",full.names = T,pattern = "env_data")
+
+# produce object 'all_layers' which has all the layers in it  
+all_layers <- rast(env_files)
+
+#clear folders of old content (becareful with this)
+unlink("data/tensor/*/*")
+
+
+print(names(all_layers))
+#write a file that indicates what each of the numpy array levels mean
+writeLines(names(all_layers),"data/tensor/_layers.txt")
+
+library(readr)
+sp_data_day_moth <- read_csv("data/occurence/DayFlyingMoths_EastNorths_no_duplicates.csv") %>% 
+  dplyr::select(id = TO_ID,x = lon,y = lat,sp = sp_n,date=date)
+
+# species data
+sp_points <- bind_rows(sp_data_day_moth)
+
+#create a species list
+species_list <- sp_points %>% 
+  pull(sp) %>% 
+  unique()
+
+species_list_lower <- sp_points %>% 
+  pull(sp) %>% 
+  unique() %>% 
+  tolower() %>% 
+  gsub(" ","_",.) 
+
+#create folders for each species
+lapply(species_list_lower,FUN = function(x){dir.create(paste0("data/tensor/",x))})
+
+#test data  
+# data.frame(id = 1:191,
+#            sp = sample(c("sp1","sp2","sp3"),191,T),
+#            x = seq(from = 400000, to=419000,by = 100),
+#            y = seq(from = 370000, to=389000,by = 100))
+
+
+
+
+
+#parallel set up
+if(F){
+  all_layers <- wrap(all_layers)
+  n.cores <- detectCores()-1
+  n.cores
+  clust <- makeCluster(n.cores)
+  clusterExport(clust, c("all_layers","crop","unwrap"))
+}
+
+
+for(i in 1:length(species_list)){
+  species <- species_list[i]
+  species_lower <- species_list_lower[i]
+  
+  print(paste0(i,"/",length(species_list)))
+  print(species_list[i])
+  print(nrow(sp_points))
+  
+  sp_points_sf <- sp_points %>% 
+    filter(sp == species) %>%
+    st_as_sf(coords =c("x","y"),crs = 27700)
+  
+  
+  
+  #testing the cropping process in 
+  #sp_points_sf %>% first() %>% st_geometry() %>% st_buffer(1000)
+  
+  #only top 1000 results for testing
+  #sp_points_sf <- head(sp_points_sf,1000)
+  
+  #get the spatial buffer around each point
+  #100k = 1.5hours (non parallel)
+  print("Buffering points")
+  buffer_list <- sp_points_sf %>% 
+    st_geometry() %>%
+    pblapply(FUN = function(x){st_buffer(x,1050)}) 
+  
+  #not parallel
+  print("Cropping raster to buffer")
+  cropped_rast_list <- buffer_list %>%
+    pblapply(FUN = function(x){crop(all_layers,x)})
+  
+  #parallel but seems to take longer
+  # cropped_rast_list <- buffer_list %>%
+  #   pblapply(FUN = function(x){crop(unwrap(all_layers),x)},cl=clust)
+  
+  
+  #turn into an array
+  #unmodified
+  cropped_rast_array <- cropped_rast_list %>% 
+    pblapply(as.array)
+  
+  # central value
+  print("Transformation: central value")
+  cropped_rast_list_centre <- cropped_rast_array %>% 
+    pblapply(
+      FUN = function(x){
+        central_vals <- x[11,11,]
+        x[,,] <- rep(central_vals,each = 21^2) %>% array(dim = c(21,21,dim(x)[3]))
+        }
+      )
+  
+  #mean values
+  print("Transformation: mean ")
+  cropped_rast_list_mean <- cropped_rast_array %>% 
+    pblapply(
+      FUN = function(x){
+        means <- x %>% apply(FUN=function(x){mean(x,na.rm = T)},MARGIN = 3)
+        x[,,] <- rep(means,each = 21^2) %>% array(dim = c(21,21,dim(x)[3]))
+      }
+    )
+  
+  
+  #save as numpy arrays
+  print("Saving outputs...")
+  np_array_list <- np$array(cropped_rast_array)
+  np$savez(paste0("data/tensor/",species_lower,"/",species_lower,"_unmodified.npz"),np_array_list)
+  
+  np_array_list_centre <- np$array(cropped_rast_array_centre)
+  np$savez(paste0("data/tensor/",species_lower,"/",species_lower,"_central_val.npz"),np_array_list_centre)
+  
+  np_array_list_mean <- np$array(cropped_rast_array_mean)
+  np$savez(paste0("data/tensor/",species_lower,"/",species_lower,"_mean.npz"),np_array_list_mean)
+}
+
+#npz files can be loaded for tensorflow or pytorch
+#load into tensorflow like so: https://www.tensorflow.org/tutorials/load_data/numpy
+# load into pytorch: https://pytorch.org/docs/stable/generated/torch.from_numpy.html
+
+
+
+
+
+
+
+
