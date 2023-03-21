@@ -76,27 +76,28 @@ sp_points_sf <- head(sp_points_sf,100000)
 print("Buffering points")
 buffer_list <- sp_points_sf %>% 
   st_geometry() %>%
-  pblapply(FUN = function(x){st_buffer(x,1050)}) 
+  pblapply(FUN = function(x){st_buffer(x,550)},force = TRUE) 
 
 #not parallel
 print("Cropping raster to buffer")
 cropped_rast_list <- buffer_list %>%
-  pblapply(FUN = function(x){crop(all_layers,x)})
+  pblapply(FUN = function(x){crop(all_layers,x)},force = TRUE)
 
 
 #turn into an array
 #unmodified
 cropped_rast_array <- cropped_rast_list %>% 
-  pblapply(as.array)
+  pblapply(as.array,force = TRUE)
 
 # central value
 print("Transformation: central value")
 cropped_rast_array_centre <- cropped_rast_array %>% 
   pblapply(
     FUN = function(x){
-      central_vals <- x[11,11,]
-      x[,,] <- rep(central_vals,each = 21^2) %>% array(dim = c(21,21,dim(x)[3]))
-      }
+      central_vals <- x[6,6,]
+      x[,,] <- rep(central_vals,each = 11^2) %>% array(dim = c(11,11,dim(x)[3]))
+      },
+    force = TRUE
     )
 
 #mean values
@@ -105,8 +106,9 @@ cropped_rast_array_mean <- cropped_rast_array %>%
   pblapply(
     FUN = function(x){
       means <- x %>% apply(FUN=function(x){mean(x,na.rm = T)},MARGIN = 3)
-      x[,,] <- rep(means,each = 21^2) %>% array(dim = c(21,21,dim(x)[3]))
-    }
+      x[,,] <- rep(means,each = 11^2) %>% array(dim = c(11,11,dim(x)[3]))
+    },
+    force = TRUE
   )
 
 
