@@ -1,5 +1,7 @@
 # rast2tensor
 
+Environmental tensors from species occurrences to use in CNN-SDMs
+
 ![image](https://user-images.githubusercontent.com/17750766/226618471-010a9b68-eac8-4270-b087-a55b2da7bd68.png)
 
 ## Overview
