@@ -1,10 +1,10 @@
 #!/bin/bash 
-#SBATCH --partition=short-serial 
+#SBATCH --partition=test
 #SBATCH --job-name=butterflyTensors
 #SBATCH -o out/%A_%a.out
 #SBATCH -e err/%A_%a.err
-#SBATCH --time=20:00:00
-#SBATCH --array=1-3
+#SBATCH --time=60:00
+#SBATCH --array=1-2
 #SBATCH --mem=16000
 
 conda 
