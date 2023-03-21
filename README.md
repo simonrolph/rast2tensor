@@ -1,5 +1,7 @@
 # rast2tensor
 
+![image](https://user-images.githubusercontent.com/17750766/226618471-010a9b68-eac8-4270-b087-a55b2da7bd68.png)
+
 ## Overview
 
 This is R code which producing tensors of environmental conditions for species occurrence records for use in CNN-SDMs. Instead of just getting the environmental conditions at a single point, this code gets the environmental conditions around the point as well - imagine a sort of cookie cutter cutting out a section of the raster around a point, rather than a pinprick at one specific location. This data can then be used in convolution neural networks. Example of a similar application:
