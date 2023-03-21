@@ -76,18 +76,18 @@ sp_points_sf <- head(sp_points_sf,100000)
 print("Buffering points")
 buffer_list <- sp_points_sf %>% 
   st_geometry() %>%
-  pblapply(FUN = function(x){st_buffer(x,550)},force = TRUE) 
+  pblapply(FUN = function(x){st_buffer(x,550)}) 
 
 #not parallel
 print("Cropping raster to buffer")
 cropped_rast_list <- buffer_list %>%
-  pblapply(FUN = function(x){crop(all_layers,x)},force = TRUE)
+  pblapply(FUN = function(x){crop(all_layers,x)})
 
 
 #turn into an array
 #unmodified
 cropped_rast_array <- cropped_rast_list %>% 
-  pblapply(as.array,force = TRUE)
+  pblapply(as.array)
 
 # central value
 print("Transformation: central value")
@@ -96,8 +96,7 @@ cropped_rast_array_centre <- cropped_rast_array %>%
     FUN = function(x){
       central_vals <- x[6,6,]
       x[,,] <- rep(central_vals,each = 11^2) %>% array(dim = c(11,11,dim(x)[3]))
-      },
-    force = TRUE
+      }
     )
 
 #mean values
@@ -107,8 +106,7 @@ cropped_rast_array_mean <- cropped_rast_array %>%
     FUN = function(x){
       means <- x %>% apply(FUN=function(x){mean(x,na.rm = T)},MARGIN = 3)
       x[,,] <- rep(means,each = 11^2) %>% array(dim = c(11,11,dim(x)[3]))
-    },
-    force = TRUE
+    }
   )
 
 
