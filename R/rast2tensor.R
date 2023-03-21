@@ -12,6 +12,7 @@ library(pbapply) #for progressbars on lapply
 #exporting data
 #library(torch) #for exporting to pytorch .pt files (not used currently)
 library(reticulate) # for exporting as numpy array
+use_condaenv("rast2tensor-jasmin")
 np <- import("numpy")
 
 #load raster files from `data/raster` - multiple files loaded as bands into one raster therefore requires matching extents/resolution
