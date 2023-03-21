@@ -7,5 +7,5 @@
 #SBATCH --array=1-2
 #SBATCH --mem=16000
 
-conda 
+conda activate rast2tensor-jasmin
 Rscript R/rast2tensor.R ${SLURM_ARRAY_TASK_ID}
