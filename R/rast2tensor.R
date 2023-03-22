@@ -1,5 +1,6 @@
 args = commandArgs(trailingOnly=TRUE); sp_id <- as.numeric(args[1]) # get species ID from call
 
+start_time <- Sys.time()
 
 #spatial processing
 library(terra)
@@ -121,7 +122,18 @@ np$savez(paste0("data/tensor/",species_lower,"/",species_lower,"_central_val.npz
 np_array_list_mean <- np$array(cropped_rast_array_mean)
 np$savez(paste0("data/tensor/",species_lower,"/",species_lower,"_mean.npz"),np_array_list_mean)
 
-print("Success")
+
+print("checking outputs")
+print("Unmodified:")
+file.exists(paste0("data/tensor/",species_lower,"/",species_lower,"_unmodified.npz"))
+print("Central value:")
+file.exists(paste0("data/tensor/",species_lower,"/",species_lower,"_central_val.npz"))
+print("Mean:")
+file.exists(paste0("data/tensor/",species_lower,"/",species_lower,"_mean.npz"))
+
+print("Script finished. Runtime:")
+print(Sys.time()-start_time)
+
 
 #npz files can be loaded for tensorflow or pytorch
 #load into tensorflow like so: https://www.tensorflow.org/tutorials/load_data/numpy
