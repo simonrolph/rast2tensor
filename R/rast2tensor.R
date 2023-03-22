@@ -17,7 +17,7 @@ use_condaenv("rast2tensor-jasmin")
 np <- import("numpy")
 
 #load raster files from `data/raster` - multiple files loaded as bands into one raster therefore requires matching extents/resolution
-env_files <- list.files("data/raster",full.names = T,pattern = "env_data")
+env_files <- list.files("data/raster",full.names = T,pattern = "*.tif")
 
 # produce object 'all_layers' which has all the layers in it  
 all_layers <- rast(env_files)
