@@ -9,7 +9,7 @@ library(sf)
 # data wranging
 library(dplyr)
 library(pbapply) #for progressbars on lapply
-pbo = pboptions(type="txt") # !!! force printing loading bars, see: https://github.com/psolymos/pbapply/issues/32
+pbo = pboptions(type="timer") # !!! force printing loading bars, see: https://github.com/psolymos/pbapply/issues/32
 
 #exporting data
 #library(torch) #for exporting to pytorch .pt files (not used currently)
