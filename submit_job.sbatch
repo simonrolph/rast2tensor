@@ -3,8 +3,8 @@
 #SBATCH --job-name=rast2tensor
 #SBATCH -o hpc_logs/%A_%a.out
 #SBATCH -e hpc_logs/%A_%a.err
-#SBATCH --time=20:00:00
-#SBATCH --array=1-3
+#SBATCH --time=2:00:00
+#SBATCH --array=1-109
 #SBATCH --mem=16000
 
 conda activate rast2tensor-jasmin

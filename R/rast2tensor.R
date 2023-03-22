@@ -73,14 +73,14 @@ print(nrow(sp_points_sf))
 #sp_points_sf %>% first() %>% st_geometry() %>% st_buffer(1000)
 
 #only top 100k results
-sp_points_sf <- head(sp_points_sf,100000)
+sp_points_sf <- head(sp_points_sf,500000)
 
 #get the spatial buffer around each point
 #100k = 1.5hours (non parallel)
 print("Buffering points")
 buffer_list <- sp_points_sf %>% 
   st_geometry() %>%
-  st_buffer(550)
+  st_buffer(550) #550metre buffer
 
 
 print("Cropping raster to buffer")
@@ -127,6 +127,10 @@ cropped_rast_array_mean <- cropped_rast_array %>%
 
 #save as numpy arrays
 print("Saving outputs...")
+
+#save untransformed as rds
+saveRDS(cropped_rast_array,paste0("data/tensor/",species_lower,"/",species_lower,"_unmodified.RDS"))
+
 np_array_list <- np$array(cropped_rast_array)
 np$savez(paste0("data/tensor/",species_lower,"/",species_lower,"_unmodified.npz"),np_array_list)
 
