@@ -1,6 +1,6 @@
 #!/bin/bash 
 #SBATCH --partition=short-serial 
-#SBATCH --job-name=butterflyTensors
+#SBATCH --job-name=rast2tensor
 #SBATCH -o hpc_logs/%A_%a.out
 #SBATCH -e hpc_logs/%A_%a.err
 #SBATCH --time=20:00:00
