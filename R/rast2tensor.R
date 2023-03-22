@@ -1,5 +1,7 @@
 args = commandArgs(trailingOnly=TRUE); sp_id <- as.numeric(args[1]) # get species ID from call
-
+if (is.na(sp_id)){
+  sp_id <- 1
+}
 start_time <- Sys.time()
 
 #spatial processing
@@ -78,23 +80,34 @@ sp_points_sf <- head(sp_points_sf,100000)
 print("Buffering points")
 buffer_list <- sp_points_sf %>% 
   st_geometry() %>%
-  pblapply(FUN = function(x){st_buffer(x,550)}) 
+  st_buffer(550)
 
-#not parallel
+
 print("Cropping raster to buffer")
-cropped_rast_list <- buffer_list %>%
-  pblapply(FUN = function(x){crop(all_layers,x)})
+#old version 
+# print("Cropping raster to buffer")
+# system.time({
+#   cropped_rast_list <- buffer_list %>%
+#     pblapply(FUN = function(x){crop(all_layers,x)})
+# })
+# cropped_rast_array <- cropped_rast_list %>% 
+#   pblapply(as.array)
 
+#alternative faster version
+extract1 <- cells(all_layers,vect(buffer_list)) %>% as.data.frame()
+extract2 <- extract(all_layers,extract1[,"cell"],xy=T)
+extract3 <- cbind(extract1,extract2)
 
-#turn into an array
-#unmodified
-cropped_rast_array <- cropped_rast_list %>% 
-  pblapply(as.array)
+cropped_rast_array <- extract3 %>% select(-cell) %>%
+  base::split(f = extract3$ID) %>%
+  pblapply(FUN = function(x){rast(x[,-1],type="xyz")}) %>% #create raster 
+  lapply(as.array) %>% #turn into an array
+  unname()
 
 # central value
 print("Transformation: central value")
 cropped_rast_array_centre <- cropped_rast_array %>% 
-  pblapply(
+  lapply(
     FUN = function(x){
       central_vals <- x[6,6,]
       x[,,] <- rep(central_vals,each = 11^2) %>% array(dim = c(11,11,dim(x)[3]))
@@ -104,7 +117,7 @@ cropped_rast_array_centre <- cropped_rast_array %>%
 #mean values
 print("Transformation: mean ")
 cropped_rast_array_mean <- cropped_rast_array %>% 
-  pblapply(
+  lapply(
     FUN = function(x){
       means <- x %>% apply(FUN=function(x){mean(x,na.rm = T)},MARGIN = 3)
       x[,,] <- rep(means,each = 11^2) %>% array(dim = c(11,11,dim(x)[3]))
