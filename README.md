@@ -17,6 +17,23 @@ The spatial processing is carried  out using R package {terra}. It has been set-
 
 Two transformations are applied, mean value and central value. See figure 3 of (Deneu et al.) for context.
 
+## Quick guide
+
+ * Requirements: SLURM cluster, conda environment manager
+ * Clone the repo with `git clone https://github.com/simonrolph/rast2tensor.git` for example
+ * Navigatge to project directory with `cd rast2tensor`
+ * Create a `data` folder and within in create three folders: `occurence`, `raster` and `tensor`
+ * Load raster data in to `data/raster` as `.tif` files
+ * Load species occurence data to `data/occurence` as an `all_occ_data.RDS` file
+ * Create a conda environment from the `environment-jasmin.yml` file with  `conda env create -f environment-jasmin.yml`
+ * Update sbactch file `submit_job.sbatch` the sbatch array parameter to go from 1 to the number of species in occurence data eg. `#SBATCH --array=1-41`. Also set the partition etc.
+ * Load the conda environment with `conda env rast2tensor-jasmin` and test the script with `Rscript R/rast2tensor.R 1`
+ * Test that it works on SLURM with the test sbatch script `sbatch submit_job_test.sbatch`
+ * Check the progress by looking in the log files `.out` and `.err` which will be written to the `hpc_logs` folder or use `squeue -u [USERNAME]`
+ * Cancel with job with `scancel [JOB_ID]`
+ * Submit the job with the main script `sbatch submit_job.sbatch`
+ * Get outputs from `data/tensor/`
+ 
 ## Data inputs
 
 ### Rasters
