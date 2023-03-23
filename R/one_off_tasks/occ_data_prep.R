@@ -3,7 +3,7 @@
 library(readr)
 library(dplyr)
 
-sp_data_day_moth <- read_csv("data/occurence/DayFlyingMoths_EastNorths_no_duplicates.csv") %>% 
+sp_data_day_moth <- read_csv("data/occurence/DayFlyingMoths_EastNorths_no_duplicates.csv") %>%
   dplyr::select(id = TO_ID,x = lon,y = lat,sp = sp_n,date=date)
 
 
@@ -11,6 +11,13 @@ sp_data_butterfly <- read_csv("data/occurence/butterfly_EastNorths_no_duplicates
 
 sp_data <- bind_rows(sp_data_day_moth,sp_data_butterfly)
 
+#or just butterflies
+#sp_data <- sp_data_butterfly
+
+#species with over 10k records
+sp_with_10k <- sp_data %>% group_by(sp) %>% summarise(n=n()) %>% filter(n>10000) %>% pull(sp)
+
+sp_data <- sp_data %>% filter(sp%in%sp_with_10k)
 
 sp_data %>% saveRDS("data/occurence/all_occ_data.RDS")
 

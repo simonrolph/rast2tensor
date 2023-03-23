@@ -6,6 +6,7 @@ start_time <- Sys.time()
 
 #spatial processing
 library(terra)
+terraOptions(memmax = 30) #less than the amount define in the 
 library(sf)
 
 # data wranging
@@ -72,7 +73,7 @@ print(nrow(sp_points_sf))
 #testing the cropping process in 
 #sp_points_sf %>% first() %>% st_geometry() %>% st_buffer(1000)
 
-#only top 100k results
+#only top 500k results
 sp_points_sf <- head(sp_points_sf,500000)
 
 #get the spatial buffer around each point
@@ -84,25 +85,42 @@ buffer_list <- sp_points_sf %>%
 
 
 print("Cropping raster to buffer")
-#old version 
-# print("Cropping raster to buffer")
-# system.time({
-#   cropped_rast_list <- buffer_list %>%
-#     pblapply(FUN = function(x){crop(all_layers,x)})
-# })
-# cropped_rast_array <- cropped_rast_list %>% 
-#   pblapply(as.array)
-
-#alternative faster version
 extract1 <- cells(all_layers,vect(buffer_list)) %>% as.data.frame()
 extract2 <- extract(all_layers,extract1[,"cell"],xy=T)
 extract3 <- cbind(extract1,extract2)
 
+#method that doesn't have to create rasters then transform to arrays so hopefully less memory involved 
+# df_to_array <- function(df){
+#   df$x <-df$x - min(df$x)
+#   df$x <- df$x / (diff(unique(sort(df$x))))[1]
+#   df$y <- df$y - min(df$y)
+#   df$y <- df$y / (diff(unique(sort(df$y))))[1]
+#   df<-df[,-1] #drop ID column
+#   cols1 <- bind_rows(replicate(ncol(df)-2, df[,1:2], simplify = FALSE))
+#   x <- as.data.frame(t(df[,3:ncol(df)]))
+#   cols2 <- data.frame(
+#     name = rownames(x),
+#     value = unlist(x)
+#   )
+#   df <- bind_cols(cols1,cols2)
+#   xtabs(value ~ x + y+name, df)
+# }
+# 
+# cropped_rast_array <- extract3 %>% select(-cell) %>%
+#   base::split(f = extract3$ID) %>%
+#   pblapply(FUN = df_to_array) %>% 
+#   unname()
+
+
+
+#version that turned it into a raster then an array
 cropped_rast_array <- extract3 %>% select(-cell) %>%
   base::split(f = extract3$ID) %>%
-  pblapply(FUN = function(x){rast(x[,-1],type="xyz")}) %>% #create raster 
+  pblapply(FUN = function(x){rast(x[,-1],type="xyz")}) %>% #create raster
   lapply(as.array) %>% #turn into an array
   unname()
+
+gc()
 
 # central value
 print("Transformation: central value")
