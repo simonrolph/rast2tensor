@@ -40,6 +40,8 @@ Two transformations are applied, mean value and central value. See figure 3 of (
 
 Rasters are provided as GeoTIFF files (`.tif`) and placed at the following location `data/raster`. Add each layer as a separate `.tif` file. Each file must have the same extent and resolution. They are loaded in as the terra class `SpatRaster`. 
 
+An example Google Earth Engine script is provided in `GEE` folder which can be used to get data from GEE.
+
 ### Species occurence data
 
 Species occurence data is provided as a `.RDS` file which is a tibble with 5 columns (although date is not used currently so not required): 
